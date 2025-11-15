@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', function() {
           settingsButton = document.getElementById('settings-button'),
           memoryPanel = document.getElementById('memory-panel'),
           memoryList = document.getElementById('memory-list'),
+          memoriesArea = document.getElementById('memories-area'),
+          refreshMemoriesBtn = document.getElementById('refresh-memories-btn'),
           moodButton = document.getElementById('mood-button'),
           moodPanel = document.getElementById('mood-panel'),
           moodList = document.getElementById('mood-list'),
@@ -74,24 +76,28 @@ document.addEventListener('DOMContentLoaded', function() {
             if (csrfToken) {
                 headers['X-CSRF-Token'] = csrfToken;
             }
-            
-            const res = await fetch(`/chat`, { // Relative path
+
+            // Use streaming endpoint for real-time response
+            const response = await fetch('/chat/stream', {
                 method: 'POST',
                 headers: headers,
                 body: JSON.stringify({ message: text })
             });
-            
-            if(!res.ok) {
-                if(res.status === 401) {
+
+            if(!response.ok) {
+                if(response.status === 401) {
                      addMessage('bot', "Authentication error. Please refresh and log in.");
                 }
-                throw new Error(`Server ${res.status}`);
+                throw new Error(`Server ${response.status}`);
             }
-            
-            const data = await res.json();
-            addMessage('bot', data.reply || "Sorry, no reply.");
-            
-  
+
+            // Hide typing indicator before streaming starts
+            typingIndicator.classList.add('hidden');
+            stopTypingTimer();
+
+            // Stream the response token-by-token from backend
+            await streamResponseFromServer(response);
+
         } catch(err) {
             console.error("Chat fetch error:", err);
             addMessage('bot', "My brain fizzled. The server might be busy. Try again?");
@@ -131,6 +137,100 @@ document.addEventListener('DOMContentLoaded', function() {
         chatLog.appendChild(row);
         requestAnimationFrame(()=> row.style.opacity = '1');
         chatLog.scrollTo({ top: chatLog.scrollHeight, behavior: 'smooth' });
+    }
+
+    // --- Optimized streaming from server-sent events ---
+    async function streamResponseFromServer(response) {
+        const chatLog = document.getElementById('chat-log');
+        if (!chatLog) return;
+
+        // Create bot message with GPU-optimized animation
+        const row = document.createElement('div');
+        row.className = 'message-row animate-msg streaming';
+        row.style.willChange = 'transform, opacity';
+
+        row.innerHTML = `
+            <div class="avatar w-8 h-8 rounded-full bg-lavender_soft dark:bg-night_panel flex items-center justify-center flex-shrink-0 mb-1 border border-lavender_border/50 dark:border-white/10">
+                <i class="ph-fill ph-flower-lotus text-lavender_text dark:text-white text-sm"></i>
+            </div>
+            <div class="message-bubble bot-bubble px-6 py-4">
+                <p class="leading-relaxed text-base font-medium"><span class="stream-content"></span><span class="stream-cursor">|</span></p>
+            </div>`;
+
+        chatLog.appendChild(row);
+
+        // Use requestAnimationFrame for smooth initial render
+        requestAnimationFrame(() => {
+            row.style.transform = 'translateY(0)';
+            row.style.opacity = '1';
+        });
+
+        const streamContent = row.querySelector('.stream-content');
+        const streamCursor = row.querySelector('.stream-cursor');
+
+        // Performance optimization: use textContent instead of innerHTML
+        let fullText = '';
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        try {
+            while (true) {
+                const { value, done } = await reader.read();
+
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = line.slice(6).trim();
+
+                        if (data === '[DONE]') {
+                            // Streaming completed
+                            break;
+                        }
+
+                        try {
+                            const parsed = JSON.parse(data);
+
+                            if (parsed.error) {
+                                // Handle error case
+                                streamContent.textContent = `Error: ${parsed.error}`;
+                                break;
+                            }
+
+                            if (parsed.token) {
+                                fullText += parsed.token;
+                                streamContent.textContent = fullText;
+
+                                // Use transform for smooth scrolling (GPU-accelerated)
+                                chatLog.scrollTo({
+                                    top: chatLog.scrollHeight,
+                                    behavior: 'smooth'
+                                });
+                            }
+                        } catch (e) {
+                            console.error('Error parsing streaming data:', e);
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error reading stream:', error);
+            streamContent.textContent = 'Streaming error occurred';
+        }
+
+        // Clean up streaming animation
+        streamCursor.style.display = 'none';
+        row.classList.remove('streaming');
+
+        // Final smooth scroll
+        chatLog.scrollTo({
+            top: chatLog.scrollHeight,
+            behavior: 'smooth'
+        });
     }
 
     // --- Scroll helper ---
@@ -193,9 +293,75 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // --- Dedicated Memories Area ---
+    async function loadMemoriesArea() {
+        if (!memoriesArea) return;
+
+        memoriesArea.innerHTML = '<div class="flex justify-center py-4"><div class="typing-dot"></div></div>';
+        try {
+            const res = await fetch(`/memory/`); // Relative path
+            const data = await res.json();
+            memoriesArea.innerHTML = '';
+
+            if(!data.memories || data.memories.length === 0) {
+                memoriesArea.innerHTML = '<div class="text-center text-muted py-4 font-serif italic text-xs">No memories stored yet.</div>';
+                return;
+            }
+
+            data.memories.forEach(mem => {
+                const memoryCard = document.createElement('div');
+                memoryCard.className = 'memory-card bg-lavender_soft/20 dark:bg-white/5 p-3 rounded-lg border border-lavender_border/30 dark:border-white/10 hover:border-lavender_border/50 transition-all group';
+
+                const memoryContent = document.createElement('div');
+                memoryContent.className = 'flex items-start justify-between gap-2';
+
+                const memoryInfo = document.createElement('div');
+                memoryInfo.className = 'flex-1 min-w-0';
+                memoryInfo.innerHTML = `
+                    <div class="flex items-center gap-2 mb-1">
+                        <div class="w-4 h-4 rounded-full bg-lavender_soft dark:bg-white/10 flex items-center justify-center flex-shrink-0">
+                            <i class="ph-fill ph-notebook text-lavender_text dark:text-white text-xs"></i>
+                        </div>
+                        <p class="text-[9px] text-lavender_text dark:text-white font-bold uppercase tracking-widest font-sans truncate">${escapeHtml(mem.key)}</p>
+                    </div>
+                    <p class="text-ink dark:text-gray-300 font-serif text-sm leading-relaxed line-clamp-2">${escapeHtml(mem.value)}</p>
+                `;
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'w-6 h-6 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/10 text-muted hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0';
+                deleteBtn.innerHTML = `<i class="ph ph-trash text-xs"></i>`;
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    confirmForgetMemory(mem.id, mem.key);
+                });
+
+                memoryContent.appendChild(memoryInfo);
+                memoryContent.appendChild(deleteBtn);
+                memoryCard.appendChild(memoryContent);
+
+                memoriesArea.appendChild(memoryCard);
+            });
+
+        } catch(e) {
+            console.error("Error loading memories area:", e);
+            memoriesArea.innerHTML = '<p class="text-center text-red-400 text-xs">Failed to load memories.</p>';
+        }
+    }
+
     // --- Mood panel ---
-    moodButton.addEventListener('click', ()=> { moodPanel.classList.remove('hidden'); loadJournal(); });
+    moodButton.addEventListener('click', ()=> {
+        moodPanel.classList.remove('hidden');
+        loadJournal();
+        loadMemoriesArea(); // Load memories when Journal panel opens
+    });
     document.getElementById('close-mood-button').addEventListener('click', ()=> { moodPanel.classList.add('hidden'); });
+
+    // Refresh memories button (now in Journal panel)
+    if (refreshMemoriesBtn) {
+        refreshMemoriesBtn.addEventListener('click', () => {
+            loadMemoriesArea();
+        });
+    }
 
     async function loadMoods() {
         moodList.innerHTML = '<div class="flex justify-center py-5"><div class="typing-dot"></div></div>';
@@ -497,6 +663,22 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         modalTitle.textContent = "Forget this?";
         modalMessage.innerHTML = `Forget <span class="font-serif italic">"${escapeHtml(keyName)}"</span>?`;
+        modal.classList.remove('hidden');
+    }
+
+    function confirmForgetMemory(id, keyName) {
+        onConfirm = async () => {
+            const headers = { 'Content-Type': 'application/json' };
+            if (csrfToken) {
+                headers['X-CSRF-Token'] = csrfToken;
+            }
+            await fetch(`/memory/forget`, { method:'POST', headers: headers, body: JSON.stringify({ id }) });
+            loadMemoriesArea(); // Refresh the memories area
+            loadMemory(); // Also refresh the old memory list if it's being used
+            closeModal();
+        };
+        modalTitle.textContent = "Forget Memory?";
+        modalMessage.innerHTML = `Remove memory <span class="font-serif italic">"${escapeHtml(keyName)}"</span>?`;
         modal.classList.remove('hidden');
     }
     function closeModal() { modal.classList.add('hidden'); onConfirm = null; }

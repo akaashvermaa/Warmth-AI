@@ -131,6 +131,20 @@ class ChatService:
             logger.error(f"Chat generation error: {e}", exc_info=True)
             return "My brain fizzled. Try again?"
 
+    def chat_stream(self, messages: list[dict]):
+        """
+        Stream chat response token by token.
+        Simplified version for streaming - bypasses some complex logic for performance.
+        """
+        try:
+            # Stream tokens directly from LLM service
+            for token in self.llm_service.chat_stream(messages):
+                yield token
+
+        except Exception as e:
+            logger.error(f"Streaming error: {e}", exc_info=True)
+            yield "I'm having trouble streaming my response. Please try again."
+
     # --- Helper Methods ---
 
     def _get_listening_acknowledgement(self):

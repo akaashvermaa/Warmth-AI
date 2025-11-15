@@ -7,12 +7,20 @@
     --user-bg-light: rgba(60, 60, 60, 0.95);
     --text-light: #000000;
 
-    /* Dark mode palette */
-    --bg-dark-base: #170b0d;
-    --bg-dark-1: #2b1216;
-    --bot-bg-dark: rgba(235, 165, 180, 0.12);
-    --user-bg-dark: rgba(255, 180, 140, 0.12);
-    --text-dark: #f3e9ef;
+    /* Luxury Dark mode palette */
+    --velvety-black: #1A1A2E;
+    --shadow-purple: #211730;
+    --shadow-purple-light: #4E4E50;
+    --deep-burgundy: #670c0c;
+    --accents-gold: #eccb05;
+    --warm-off-white: #F5F5DC;
+
+    /* Dark mode palette (updated with luxury colors) */
+    --bg-dark-base: var(--velvety-black);
+    --bg-dark-1: var(--shadow-purple);
+    --bot-bg-dark: var(--shadow-purple-light);
+    --user-bg-dark: var(--deep-burgundy);
+    --text-dark: var(--warm-off-white);
 
     /* UI tokens */
     --max-width: 880px;
@@ -29,11 +37,11 @@
     --anim-ease: cubic-bezier(.16, .84, .24, 1);
     --anim-smooth: cubic-bezier(0.2, 0.9, 0.3, 1);
 
-    /* Accent colors - Black, White, Gray */
-    --accent: #333333;
-    --accent-hover: #000000;
-    --typing-dot: #666666;
-    --scroll-thumb: #999999;
+    /* Accent colors - Luxury palette */
+    --accent: var(--deep-burgundy);
+    --accent-hover: var(--accents-gold);
+    --typing-dot: var(--accents-gold);
+    --scroll-thumb: var(--shadow-purple-light);
 }
 
 /* ========== BASE STYLES ========== */
@@ -60,8 +68,8 @@ h1, h2, .serif-text {
 body.dark {
     color: var(--text-dark);
     background:
-        radial-gradient(circle at 20% 40%, rgba(255, 120, 150, 0.06), transparent 8%),
-        radial-gradient(circle at 80% 75%, rgba(255, 170, 120, 0.04), transparent 12%),
+        radial-gradient(circle at 20% 40%, rgba(236, 203, 5, 0.03), transparent 8%),
+        radial-gradient(circle at 80% 75%, rgba(103, 12, 12, 0.04), transparent 12%),
         linear-gradient(180deg, var(--bg-dark-1) 0%, var(--bg-dark-base) 100%);
 }
 
@@ -131,10 +139,10 @@ body.dark {
 }
 
 body.dark .message.bot .bubble {
-    background: linear-gradient(180deg, var(--bot-bg-dark), rgba(200, 120, 140, 0.08));
+    background: linear-gradient(180deg, var(--bot-bg-dark), var(--shadow-purple));
     color: var(--text-dark);
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), 0 4px 14px rgba(235, 165, 180, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.03);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.8), 0 4px 14px rgba(236, 203, 5, 0.1);
+    border: 1px solid rgba(236, 203, 5, 0.1);
 }
 
 /* User message (right) */
@@ -150,10 +158,10 @@ body.dark .message.bot .bubble {
 }
 
 body.dark .message.user .bubble {
-    background: linear-gradient(180deg, var(--user-bg-dark), rgba(255, 150, 110, 0.06));
+    background: linear-gradient(180deg, var(--user-bg-dark), var(--deep-burgundy));
     color: var(--text-dark);
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), 0 4px 14px rgba(255, 180, 140, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.03);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.8), 0 4px 14px rgba(103, 12, 12, 0.3);
+    border: 1px solid rgba(236, 203, 5, 0.2);
     border-bottom-right-radius: 8px;
 }
 
@@ -184,10 +192,10 @@ body.dark .message.user .bubble {
 }
 
 body.dark .input-row .input {
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--shadow-purple-light);
     color: var(--text-dark);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.03);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 4px 14px rgba(236, 203, 5, 0.1);
+    border: 1px solid rgba(236, 203, 5, 0.15);
 }
 
 form#chat-form {
@@ -299,7 +307,15 @@ body.dark .toggle-checkbox {
 }
 
 body.dark .btn-send {
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.36);
+    background: var(--deep-burgundy);
+    color: var(--accents-gold);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6), 0 4px 14px rgba(103, 12, 12, 0.3);
+    border: 1px solid rgba(236, 203, 5, 0.2);
+}
+
+body.dark .btn-send:hover {
+    background: var(--accent-hover);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.8), 0 4px 14px rgba(236, 203, 5, 0.3);
 }
 
 /* ========== FOCUS & ACCESSIBILITY ========== */
@@ -433,7 +449,7 @@ header {
     max-width: 100vw !important;
     width: 100vw !important;
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 0 0 140px 0 !important;
 }
 
 .message {
@@ -452,29 +468,29 @@ header {
     margin-left: 60px !important;
 }
 
-/* USER MESSAGE - MOVE TO LEFT SIDE */
+/* USER MESSAGE - MOVE TO RIGHT SIDE */
 .message-right .message-bubble {
-    margin-right: 120px !important;
-    margin-left: 20px !important;
+    margin-right: clamp(32px, 6vw, 100px) !important;
+    margin-left: auto !important;
 }
 
-/* USER MESSAGE - ALIGN TO LEFT */
+/* USER MESSAGE - ALIGN TO RIGHT */
 .message-right {
-    justify-content: flex-start !important;
+    justify-content: flex-end !important;
     margin-right: 0 !important;
     margin-left: 0 !important;
 }
 
 .message-right .msg-right-wrapper {
-    margin-right: 0 !important;
-    margin-left: 0 !important;
+    margin-right: clamp(32px, 6vw, 100px) !important;
+    margin-left: auto !important;
     max-width: calc(100vw - 200px) !important;
 }
 
 /* SPECIFIC USER-BUBBLE STYLING */
 .user-bubble {
-    margin-right: 120px !important;
-    margin-left: 20px !important;
+    margin-right: clamp(32px, 6vw, 100px) !important;
+    margin-left: auto !important;
     max-width: calc(100vw - 200px) !important;
 }
 

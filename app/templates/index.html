@@ -30,11 +30,12 @@
                                     user_border: '#F2E4D8',
                                     ink: '#3A2424',
                                     muted: '#AD8A8A',
-                                    night_bg: '#2B1E1E',
-                                    night_panel: '#3A2727',
-                                    night_text: '#F8EDED',
-                                    chart_line: '#A77D7D',
-                                    chart_fill: 'rgba(247, 231, 224, 0.5)',
+                                    night_bg: '#1A1A2E',
+                                    night_panel: '#211730',
+                                    night_text: '#F5F5DC',
+                                    gold_accent: '#eccb05',
+                                    chart_line: '#eccb05',
+                                    chart_fill: 'rgba(103, 12, 12, 0.2)',
                                 },
                                 fontFamily: {
                                     serif: ['Lora', 'serif'],
@@ -81,7 +82,7 @@
                 <i class="ph-fill ph-sparkle text-xl"></i>
             </div>
             <div>
-                <h1 class="text-xl font-serif font-medium text-ink dark:text-white tracking-tight">Warmth</h1>
+                <h1 class="text-xl font-serif font-medium text-ink dark:gold_accent tracking-tight">Warmth</h1>
                 <p class="text-[10px] text-muted uppercase tracking-widest">Safe Space</p>
             </div>
         </div>
@@ -90,13 +91,13 @@
                 <i class="ph ph-ear text-lavender_text dark:text-gray-400 text-sm"></i>
                 <span class="text-[10px] font-serif italic text-lavender_text dark:text-gray-400">Listening</span>
             </div>
-            <button id="mood-button" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white dark:hover:bg-white/10 transition-all text-muted hover:text-lavender_text dark:text-gray-400">
+            <button id="mood-button" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white dark:hover:bg-white/10 transition-all text-muted hover:text-lavender_text dark:gold_accent">
                 <i class="ph ph-heartbeat text-lg"></i>
             </button>
-            <button id="theme-toggle" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white dark:hover:bg-white/10 transition-all text-muted hover:text-ink dark:text-gray-400">
+            <button id="theme-toggle" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white dark:hover:bg-white/10 transition-all text-muted hover:text-ink dark:gold_accent">
                 <i id="theme-icon" class="ph ph-moon text-lg"></i>
             </button>
-            <button id="settings-button" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white dark:hover:bg-white/10 transition-all text-muted hover:text-ink dark:text-gray-400">
+            <button id="settings-button" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white dark:hover:bg-white/10 transition-all text-muted hover:text-ink dark:gold_accent">
                 <i class="ph ph-gear text-lg"></i>
             </button>
         </div>
@@ -149,6 +150,7 @@
                 <button id="close-memory-button" class="text-muted hover:text-ink p-2 rounded-full hover:bg-black/5 transition"><i class="ph ph-x text-lg"></i></button>
             </div>
             <div class="flex-1 overflow-y-auto">
+                <!-- Privacy Settings -->
                 <div class="p-6 space-y-4">
                     <h3 class="text-xs font-bold uppercase tracking-widest text-muted">Privacy</h3>
                     <div class="space-y-3">
@@ -211,6 +213,26 @@
                     <p id="advice-text" class="font-serif italic text-ink dark:text-white text-lg leading-relaxed">
                         "Loading..."
                     </p>
+                </div>
+
+                <!-- Dedicated Memories Area -->
+                <div class="bg-white dark:bg-white/5 p-5 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-5 h-5 rounded-full bg-lavender_soft dark:bg-white/10 flex items-center justify-center">
+                                <i class="ph-fill ph-notebook text-lavender_text dark:text-white text-xs"></i>
+                            </div>
+                            <h3 class="text-xs font-bold uppercase tracking-widest text-muted">Memories</h3>
+                        </div>
+                        <button id="refresh-memories-btn" class="text-muted hover:text-ink p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition" title="Refresh memories">
+                            <i class="ph ph-arrow-clockwise text-sm"></i>
+                        </button>
+                    </div>
+                    <div id="memories-area" class="space-y-2 max-h-80 overflow-y-auto">
+                        <div class="flex justify-center py-6">
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <div>

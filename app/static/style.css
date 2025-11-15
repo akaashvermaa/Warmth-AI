@@ -18,7 +18,7 @@
 
     /* UI tokens */
     --max-width: 1200px;
-    --message-max-width: 95%;
+    --message-max-width: min(600px, 75%); /* Responsive max-width: 75% of container, max 600px */
     --bubble-radius: 18px;
     --spacing-vertical: 44px; /* increased vertical gap */
     --line-height: 1.7;       /* increased line-height for readability */
@@ -107,8 +107,42 @@ body.dark {
 }
 
 @media (max-width: 720px) {
-    :root { --message-max-width: 92%; --user-right-offset: 4vw; --spacing-vertical: 28px; }
+    :root { --message-max-width: min(400px, 85%); --user-right-offset: 4vw; --spacing-vertical: 28px; }
     .chat-wrapper { padding-left: 20px; padding-right: 20px; }
+
+    /* Reduce margins on smaller screens */
+    .message-row.msg-left .msg-left-wrapper {
+        margin-left: clamp(12px, 3vw, 40px) !important;
+        max-width: calc(100% - 60px) !important;
+    }
+
+    .message-row.msg-right .msg-right-wrapper {
+        margin-right: clamp(12px, 3vw, 40px) !important;
+        max-width: calc(100% - 60px) !important;
+    }
+}
+
+/* Extra small screens (mobile phones in portrait) */
+@media (max-width: 480px) {
+    :root { --message-max-width: min(300px, 90%); --user-right-offset: 2vw; --spacing-vertical: 20px; }
+    .chat-wrapper { padding-left: 12px; padding-right: 12px; }
+
+    /* Further reduce margins for very small screens */
+    .message-row.msg-left .msg-left-wrapper {
+        margin-left: clamp(8px, 2vw, 24px) !important;
+        max-width: calc(100% - 40px) !important;
+    }
+
+    .message-row.msg-right .msg-right-wrapper {
+        margin-right: clamp(8px, 2vw, 24px) !important;
+        max-width: calc(100% - 40px) !important;
+    }
+
+    /* Smaller bubbles on mobile */
+    .message-bubble {
+        padding: 14px 18px !important;
+        font-size: 14px !important;
+    }
 }
 
 /* ========= Bubble system (standardized) ========= */
@@ -168,21 +202,21 @@ body.dark {
 .dark .bot-bubble,
 body.dark .bot-bubble {
     background: linear-gradient(180deg, rgba(235,165,180,0.16), rgba(200,120,140,0.08));
-    color: var(--text-dark);
+    color: #F5F5DC;
     box-shadow: 0 12px 36px rgba(0,0,0,0.7), 0 6px 20px rgba(235,165,180,0.06);
     border: 1px solid rgba(255,255,255,0.03);
 }
 .dark .user-bubble,
 body.dark .user-bubble {
     background: linear-gradient(180deg, rgba(255,180,140,0.14), rgba(255,150,110,0.06));
-    color: #fff6ee;
+    color: #F5F5DC;
     box-shadow: 0 12px 36px rgba(0,0,0,0.7), 0 6px 18px rgba(255,180,140,0.05);
     border: 1px solid rgba(255,255,255,0.03);
 }
 #chat-log .message-row:first-of-type .bot-bubble,
 #chat-log .message-row:first-child .bot-bubble {
     background: linear-gradient(180deg, rgba(235,165,180,0.18), rgba(200,120,140,0.10)) !important;
-    color: var(--text-dark) !important;
+    color: #F5F5DC !important;
     box-shadow: 0 14px 40px rgba(0,0,0,0.72) !important;
     border: 1px solid rgba(255,255,255,0.04) !important;
 }
@@ -238,12 +272,12 @@ form#chat-form {
 #chat-log {
   height: calc(100vh - 200px) !important;
   max-height: calc(100vh - 200px) !important;
-  padding-bottom: 18px;
+  padding-bottom: 120px;
 }
 @media (max-width: 720px) {
   .fixed-chat-input { bottom: 16px; padding-left: 16px; padding-right: 16px; }
   .fixed-chat-input > .input-inner { max-width: 92%; }
-  #chat-log { height: calc(100vh - 180px) !important; max-height: calc(100vh - 180px) !important; }
+  #chat-log { height: calc(100vh - 180px) !important; max-height: calc(100vh - 180px) !important; padding-bottom: 100px; }
 }
 
 /* Final bubble behavior overrides */
@@ -256,6 +290,18 @@ form#chat-form {
   margin-bottom: 8px !important;
 }
 .msg-left { justify-content: flex-start !important; }
+
+/* Bot message wrapper for responsive layout */
+.message-row.msg-left .msg-left-wrapper {
+  display: flex !important;
+  align-items: flex-start !important;
+  margin-right: auto !important;
+  margin-left: clamp(24px, 5vw, 80px) !important;
+  max-width: calc(100% - 80px) !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
 .message-row.msg-right {
   justify-content: flex-end !important;
 }
@@ -263,12 +309,18 @@ form#chat-form {
   display: flex !important;
   align-items: flex-start !important;
   margin-left: auto !important;
-  margin-right: var(--user-right-offset, 6vw) !important;
+  margin-right: clamp(24px, 5vw, 80px) !important;
   max-width: calc(100% - 80px) !important;
   min-width: 0 !important;
   box-sizing: border-box !important;
 }
 .message-row.msg-right .msg-right-wrapper .message-bubble {
+  display: inline-block !important;
+  min-width: 80px !important;
+  max-width: var(--message-max-width) !important;
+}
+
+.message-row.msg-left .msg-left-wrapper .message-bubble {
   display: inline-block !important;
   min-width: 80px !important;
   max-width: var(--message-max-width) !important;
@@ -283,10 +335,308 @@ form#chat-form {
   line-height: var(--line-height, 1.6) !important;
   letter-spacing: var(--letter-spacing, .12px) !important;
   white-space: normal !important;
-  word-break: normal !important;
+  word-break: break-word !important;
   overflow-wrap: break-word !important;
   hyphens: auto !important;
   box-sizing: border-box !important;
   backdrop-filter: blur(6px) !important;
+  overflow-wrap: anywhere !important;
+  word-wrap: break-word !important;
 }
 .message-bubble p { margin: 0 0 .25rem 0 !important; }
+
+/* ========== Dedicated Memories Area ========== */
+#memories-area {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(200, 150, 150, 0.3) transparent;
+}
+
+#memories-area::-webkit-scrollbar {
+    width: 6px;
+}
+
+#memories-area::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#memories-area::-webkit-scrollbar-thumb {
+    background: rgba(200, 150, 150, 0.3);
+    border-radius: 3px;
+    border: 1px solid transparent;
+    background-clip: padding-box;
+}
+
+#memories-area::-webkit-scrollbar-thumb:hover {
+    background: rgba(200, 150, 150, 0.5);
+    background-clip: padding-box;
+}
+
+.memory-card {
+    transition: all 200ms var(--anim-smooth);
+    cursor: default;
+    will-change: transform, box-shadow;
+    transform: translateZ(0);
+}
+
+.memory-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.dark .memory-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark .memory-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(247, 168, 184, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.memory-card .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Refresh button animation */
+#refresh-memories-btn:active {
+    transform: rotate(180deg);
+    transition: transform 300ms ease;
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+/* Empty state styling */
+#memories-area .text-muted {
+    color: var(--muted);
+    font-style: italic;
+}
+
+/* Memory card loading state */
+.memory-card.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* ========== Message Streaming Animations ========== */
+.stream-cursor {
+    display: inline-block;
+    color: var(--lavender_text, #F7A8B8);
+    font-weight: bold;
+    animation: blink 1s infinite;
+    margin-left: 2px;
+    will-change: opacity;
+    transform: translateZ(0);
+}
+
+.dark .stream-cursor {
+    color: var(--text-dark, #f3e9ef);
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+/* Streaming message styling (GPU-optimized) */
+.message-row.streaming {
+    position: relative;
+    will-change: transform, opacity; /* GPU optimization hint */
+    transform: translateZ(0); /* Force GPU layer creation */
+}
+
+.message-row.streaming .message-bubble {
+    position: relative;
+    overflow: hidden;
+    will-change: transform, box-shadow; /* GPU optimization hint */
+    transform: translateZ(0); /* Force GPU layer creation */
+}
+
+/* Optimized shimmer effect during streaming - GPU accelerated */
+.message-row.streaming .message-bubble::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(247, 168, 184, 0.1), transparent);
+    animation: shimmer 2s infinite linear;
+    pointer-events: none;
+    will-change: transform; /* GPU optimization hint */
+}
+
+.dark .message-row.streaming .message-bubble::after {
+    background: linear-gradient(90deg, transparent, rgba(247, 168, 184, 0.05), transparent);
+}
+
+/* GPU-accelerated shimmer animation */
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(200%); }
+}
+
+/* Enhanced content area during streaming */
+.stream-content {
+    display: inline;
+    min-height: 1.2em;
+    vertical-align: baseline;
+    will-change: transform; /* GPU optimization hint */
+}
+
+/* Prevent text selection during streaming for better UX */
+.message-row.streaming .stream-content {
+    user-select: none;
+}
+
+/* Allow selection after streaming is complete */
+.message-row:not(.streaming) .stream-content {
+    user-select: text;
+}
+
+/* GPU-optimized transitions when streaming completes */
+.message-row {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    transform: translateZ(0); /* Force GPU layer creation */
+}
+
+.message-row.streaming .message-bubble {
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    transform: translateZ(0); /* Force GPU layer creation */
+}
+
+.message-row:not(.streaming) .message-bubble {
+    box-shadow: 0 12px 36px rgba(0,0,0,0.08), 0 6px 20px rgba(0,0,0,0.03);
+    transform: translateZ(0); /* Force GPU layer creation */
+}
+
+/* ========== Browser Performance Optimizations ========== */
+
+/* Performance hints for animated elements */
+.message-bubble {
+    contain: layout style paint;
+}
+
+.avatar {
+    contain: layout style paint;
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+/* Input field optimizations */
+#chat-form, .fixed-chat-input {
+    contain: layout style;
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+/* Scrolling performance optimizations */
+#chat-log {
+    contain: layout style paint;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+}
+
+/* Memory area scrolling optimizations */
+#memories-area {
+    contain: layout style paint;
+    overscroll-behavior: contain;
+}
+
+/* Button hover optimizations */
+button, .btn {
+    will-change: transform, box-shadow;
+    transform: translateZ(0);
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .message-row {
+        transition: none !important;
+    }
+
+    .memory-card {
+        transition: none !important;
+    }
+
+    #refresh-memories-btn:active {
+        transition: none !important;
+    }
+}
+
+/* High DPI display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .message-bubble {
+        border-width: 0.5px;
+    }
+
+    .avatar {
+        box-shadow: 0 3px 9px rgba(0,0,0,0.03);
+    }
+}
+
+/* Battery-aware optimizations */
+@media (prefers-reduced-data: reduce) {
+    .message-row.streaming .message-bubble::after {
+        animation: none;
+    }
+
+    .stream-cursor {
+        animation: none;
+    }
+}
+
+/* GPU layer management for critical animations */
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(200%); }
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+/* Performance monitoring - uncomment for debugging */
+/*
+.message-row, .memory-card, .avatar, .message-bubble {
+    outline: 1px solid rgba(255, 0, 0, 0.1);
+}
+*/
+
+/* Input field placeholder styling */
+::placeholder {
+    color: #999999;
+    opacity: 1;
+}
+
+.dark ::placeholder,
+body.dark ::placeholder {
+    color: #B0B0B0;
+    opacity: 1;
+}
+
+/* Input field text styling in dark mode */
+.dark #chat-form input,
+.dark .fixed-chat-input input,
+body.dark #chat-form input,
+body.dark .fixed-chat-input input {
+    color: #F5F5DC;
+}
+
+.dark #chat-form input:focus,
+.dark .fixed-chat-input input:focus,
+body.dark #chat-form input:focus,
+body.dark .fixed-chat-input input:focus {
+    color: #F5F5DC;
+}

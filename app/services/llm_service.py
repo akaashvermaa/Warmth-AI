@@ -65,3 +65,45 @@ class LLMService:
         except RuntimeError:
             llm_logger.warning("Ollama not available; returning fallback response")
             return {"message": {"content": "(LLM not available locally)"}}
+
+    def chat_stream(self, messages: list[dict]):
+        """
+        Stream chat response token by token.
+        Yields tokens as they are generated.
+        """
+        start_time = time.time()
+
+        def _ollama_stream():
+            if not _OLLAMA_AVAILABLE:
+                raise RuntimeError("Ollama not available")
+            try:
+                # Ollama supports streaming via the stream parameter
+                for chunk in ollama.chat(model=self.model, messages=messages, stream=True):
+                    if 'message' in chunk and 'content' in chunk['message']:
+                        yield chunk['message']['content']
+            except Exception as e:
+                logger.error(f"Ollama stream exception: {e}", exc_info=True)
+                raise
+
+        try:
+            # For streaming, we'll execute directly to maintain the streaming connection
+            if not _OLLAMA_AVAILABLE:
+                llm_logger.warning("Ollama not available; returning fallback response")
+                yield "(LLM not available locally)"
+                return
+
+            llm_logger.info("LLM streaming started", extra={"model": self.model})
+
+            for token in _ollama_stream():
+                yield token
+
+            elapsed = time.time() - start_time
+            if elapsed > SLOW_RESPONSE_THRESHOLD:
+                llm_logger.warning("Slow LLM streaming", extra={"response_time": round(elapsed, 2), "threshold": SLOW_RESPONSE_THRESHOLD, "model": self.model})
+            else:
+                llm_logger.info("LLM streaming completed", extra={"response_time": round(elapsed, 2), "model": self.model})
+
+        except Exception as e:
+            elapsed = time.time() - start_time
+            llm_logger.error("LLM streaming error", extra={"error_type": type(e).__name__, "error_message": str(e), "model": self.model}, exc_info=True)
+            raise
