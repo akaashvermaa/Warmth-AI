@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="Warmth - Your safe space to chat, reflect, and be heard">
+    <title>Warmth</title>
+
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="dns-prefetch" href="https://unpkg.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        (function() {
+            function configureTailwind() {
+                if (typeof tailwind !== 'undefined') {
+                    tailwind.config = {
+                        darkMode: 'class',
+                        theme: {
+                            extend: {
+                                colors: {
+                                    mist_bg: '#FFF6EF',
+                                    lavender_soft: '#F7A8B8',
+                                    lavender_border: '#F5D59F',
+                                    lavender_text: '#3A2424',
+                                    user_bg: '#FFBC9A',
+                                    user_border: '#F2E4D8',
+                                    ink: '#3A2424',
+                                    muted: '#AD8A8A',
+                                    night_bg: '#2B1E1E',
+                                    night_panel: '#3A2727',
+                                    night_text: '#F8EDED',
+                                    chart_line: '#A77D7D',
+                                    chart_fill: 'rgba(247, 231, 224, 0.5)',
+                                },
+                                fontFamily: {
+                                    serif: ['Lora', 'serif'],
+                                    sans: ['Nunito', 'sans-serif'],
+                                },
+                                boxShadow: {
+                                    'calm': '0 2px 10px rgba(0,0,0,0.03)',
+                                    'float': '0 10px 30px -10px rgba(0,0,0,0.05)',
+                                }
+                            }
+                        }
+                    };
+                } else {
+                    setTimeout(configureTailwind, 10);
+                }
+            }
+            configureTailwind();
+        })();
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=Nunito:wght@400;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
+
+    <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+
+    <link rel="stylesheet" href="/static/style.css">
+
+    <link rel="stylesheet" href="/static/warmth-theme.css">
+
+</head>
+<body class="bg-mist_bg text-ink antialiased h-screen flex flex-col overflow-hidden relative selection:bg-lavender_soft selection:text-ink">
+
+    <div class="fixed inset-0 overflow-hidden -z-10 pointer-events-none">
+        <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-100/50 dark:bg-purple-900/10 rounded-full filter blur-[120px]"></div>
+        <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-rose-100/40 dark:bg-rose-900/10 rounded-full filter blur-[120px]"></div>
+    </div>
+
+    <header class="flex items-center justify-between px-8 py-5 w-full max-w-5xl mx-auto z-20 border-b border-black/5 dark:border-white/5">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-white dark:bg-white/10 flex items-center justify-center text-lavender_text dark:text-white shadow-sm border border-black/5 dark:border-white/10">
+                <i class="ph-fill ph-sparkle text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-serif font-medium text-ink dark:text-white tracking-tight">Warmth</h1>
+                <p class="text-[10px] text-muted uppercase tracking-widest">Safe Space</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <div id="listening-mode-indicator" class="hidden items-center gap-2 px-3 py-1.5 rounded-full bg-lavender_soft/60 dark:bg-white/5 border border-lavender_border/50 dark:border-white/10">
+                <i class="ph ph-ear text-lavender_text dark:text-gray-400 text-sm"></i>
+                <span class="text-[10px] font-serif italic text-lavender_text dark:text-gray-400">Listening</span>
+            </div>
+            <button id="mood-button" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white dark:hover:bg-white/10 transition-all text-muted hover:text-lavender_text dark:text-gray-400">
+                <i class="ph ph-heartbeat text-lg"></i>
+            </button>
+            <button id="theme-toggle" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white dark:hover:bg-white/10 transition-all text-muted hover:text-ink dark:text-gray-400">
+                <i id="theme-icon" class="ph ph-moon text-lg"></i>
+            </button>
+            <button id="settings-button" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white dark:hover:bg-white/10 transition-all text-muted hover:text-ink dark:text-gray-400">
+                <i class="ph ph-gear text-lg"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="chat-wrapper w-full max-w-5xl mx-auto">
+        <main id="chat-log" class="overflow-y-auto h-[65vh]">
+            <div class="flex items-center gap-4 opacity-30 py-8">
+                <div class="h-[1px] w-12 bg-ink dark:bg-white"></div>
+                <span class="text-xs font-serif italic text-muted">Today</span>
+                <div class="h-[1px] w-12 bg-ink dark:bg-white"></div>
+            </div>
+            <div class="message-row msg-left animate-msg">
+                <div class="avatar w-8 h-8 rounded-full bg-lavender_soft dark:bg-night_panel flex items-center justify-center flex-shrink-0 mb-1 border border-lavender_border/50 dark:border-white/10">
+                    <i class="ph-fill ph-flower-lotus text-lavender_text dark:text-white text-sm"></i>
+                </div>
+                <div class="message-bubble bot-bubble rounded-2xl rounded-bl-none px-6 py-4">
+                    <p class="leading-relaxed text-base">I'm here. <br><span class="serif-text italic text-lavender_text dark:text-gray-400 opacity-90 text-sm">What's on your mind?</span></p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="fixed-chat-input">
+      <div class="input-inner">
+        <div class="w-full relative group">
+            <div id="typing-indicator" class="absolute -top-10 left-0 hidden pl-6 transition-all">
+                <div class="bg-white dark:bg-night_panel px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm border border-black/5 dark:border-white/10">
+                    <span class="text-[10px] font-serif italic text-muted mr-1">thinking</span>
+                    <span id="typing-timer" class="text-[10px] font-mono text-muted mr-1"></span>
+                    <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+                </div>
+            </div>
+            <form id="chat-form" class="flex items-center gap-2 bg-white dark:bg-night_panel p-2 pl-6 rounded-[2rem] shadow-sm border border-black/5 dark:border-white/10 transition-all focus-within:ring-1 focus-within:ring-lavender_border focus-within:shadow-md">
+                <input type="text" id="chat-input" class="flex-1 bg-transparent border-none text-base text-ink dark:text-white placeholder-muted focus:ring-0 focus:outline-none py-2" placeholder="Write something..." autocomplete="off">
+                <button type="submit" id="send-button" class="btn-send w-10 h-10 bg-lavender_soft dark:bg-white/10 hover:bg-lavender_border dark:hover:bg-white/20 text-lavender_text dark:text-white rounded-full flex items-center justify-center transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-lavender_soft">
+                    <i class="ph-bold ph-arrow-up text-lg"></i>
+                </button>
+            </form>
+        </div>
+      </div>
+    </div>
+
+    <div id="memory-panel" class="fixed inset-0 bg-white/50 dark:bg-black/60 backdrop-blur-sm z-50 hidden transition-opacity">
+        <div class="absolute right-0 top-0 h-full w-full max-w-sm bg-mist_bg dark:bg-night_panel shadow-float flex flex-col animate-msg border-l border-black/5 dark:border-white/5">
+            <div class="p-6 border-b border-black/5 dark:border-white/5 flex justify-between items-center">
+                <h2 class="text-lg font-serif font-medium text-ink dark:text-white flex items-center gap-2">
+                    <i class="ph-duotone ph-notebook text-lavender_text dark:text-gray-400"></i> Memories & Settings
+                </h2>
+                <button id="close-memory-button" class="text-muted hover:text-ink p-2 rounded-full hover:bg-black/5 transition"><i class="ph ph-x text-lg"></i></button>
+            </div>
+            <div class="flex-1 overflow-y-auto">
+                <div id="memory-list" class="p-6 space-y-3"></div>
+                <div class="p-6 space-y-4 border-t border-black/5 dark:border-white/5">
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-muted">Privacy</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between bg-white dark:bg-white/5 p-4 rounded-xl border border-black/5 dark:border-white/5">
+                            <label for="memory-toggle" class="text-ink dark:text-gray-300 font-serif text-base">Remembering</label>
+                            <input type="checkbox" id="memory-toggle" class="toggle-checkbox" checked />
+                        </div>
+                        <button id="export-moods-btn" class="w-full text-center py-2.5 rounded-xl text-ink dark:text-white font-medium hover:bg-white dark:hover:bg-white/5 border border-black/5 dark:border-white/5">Export Mood Logs</button>
+                        <button id="clear-data-btn" class="w-full text-center py-2.5 rounded-xl bg-red-50 text-red-700 font-medium hover:bg-red-100 border border-red-200 dark:bg-red-900/10 dark:text-red-300 dark:border-red-500/10 dark:hover:bg-red-900/20">Clear All Data</button>
+                    </div>
+                </div>
+                <div class="p-6 space-y-4 border-t border-black/5 dark:border-white/5">
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-muted pt-4">Listening Mode</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between bg-white dark:bg-white/5 p-4 rounded-xl border border-black/5 dark:border-white/5">
+                            <div class="flex-1">
+                                <label for="listening-mode-toggle" class="text-ink dark:text-gray-300 font-serif text-base block mb-1">Listening mode</label>
+                                <p class="text-[10px] text-muted">Short replies only. I'll just listen.</p>
+                            </div>
+                            <input type="checkbox" id="listening-mode-toggle" class="toggle-checkbox" />
+                        </div>
+                        <div id="listening-mode-options" class="hidden space-y-2 pl-4 border-l-2 border-lavender_border/30 dark:border-white/10">
+                            <div class="flex items-center justify-between bg-white dark:bg-white/5 p-3 rounded-lg border border-black/5 dark:border-white/5">
+                                <label for="listening-memory-toggle" class="text-ink dark:text-gray-300 text-sm">Save memories while listening</label>
+                                <input type="checkbox" id="listening-memory-toggle" class="toggle-checkbox" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="mood-panel" class="fixed inset-0 bg-white/50 dark:bg-black/60 backdrop-blur-sm z-50 hidden transition-opacity">
+        <div class="absolute right-0 top-0 h-full w-full max-w-md bg-mist_bg dark:bg-night_panel shadow-float flex flex-col animate-msg border-l border-black/5 dark:border-white/5">
+            <div class="p-6 border-b border-black/5 dark:border-white/5 flex justify-between items-center">
+                <h2 class="text-lg font-serif font-medium text-ink dark:text-white flex items-center gap-2">
+                    <i class="ph-duotone ph-heartbeat text-lavender_text"></i> Emotional Pulse
+                </h2>
+                <div class="flex items-center gap-1">
+                    <button id="export-csv-button" class="text-muted hover:text-ink p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition" title="Export CSV">
+                        <i class="ph ph-download-simple text-lg"></i>
+                    </button>
+                    <button id="close-mood-button" class="text-muted hover:text-ink p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition"><i class="ph ph-x text-lg"></i></button>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                <div class="text-center pb-2">
+                    <p class="text-xs font-bold uppercase tracking-widest text-muted mb-1">Today's Vibe</p>
+                    <h3 id="vibe-text" class="text-2xl font-serif italic text-ink dark:text-white">...</h3>
+                </div>
+
+                <div class="bg-white dark:bg-white/5 p-4 rounded-2xl border border-black/5 dark:border-white/5 shadow-sm">
+                    <canvas id="moodChart" height="180"></canvas>
+                </div>
+
+                <div id="advice-box" class="bg-lavender_soft/60 dark:bg-night_bg p-5 rounded-2xl border border-lavender_border/50 dark:border-white/10">
+                    <p class="text-xs font-bold uppercase tracking-widest text-lavender_text dark:text-gray-400 mb-2">Gentle Wisdom</p>
+                    <p id="advice-text" class="font-serif italic text-ink dark:text-white text-lg leading-relaxed">
+                        "Loading..."
+                    </p>
+                </div>
+
+                <div>
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-muted mb-3">History</h3>
+                    <div id="mood-list" class="space-y-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-modal" class="fixed inset-0 bg-white/60 dark:bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-night_panel rounded-2xl shadow-float max-w-sm w-full p-6 transform transition-all scale-100 border border-black/5 dark:border-white/10">
+            <h3 id="modal-title" class="font-serif text-xl text-ink dark:text-white mb-2">Forget this?</h3>
+            <p id="modal-message" class="text-muted dark:text-gray-400 mb-6 text-sm leading-relaxed">Are you sure?</p>
+            <div class="flex gap-3">
+                <button id="modal-cancel" class="flex-1 py-2.5 rounded-xl text-ink dark:text-white font-medium hover:bg-mist_bg dark:hover:bg-white/5 border border-black/5 dark:border-white/5">Keep it</button>
+                <button id="modal-confirm" class="flex-1 py-2.5 rounded-xl bg-lavender_text text-white font-medium hover:bg-ink shadow-sm">Forget it</button>
+            </div>
+        </div>
+    </div>
+
+  
+    <div id="welcome-popup" class="fixed inset-0 bg-white/80 dark:bg-black/70 backdrop-blur-sm z-[70] flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-night_panel rounded-2xl shadow-float max-w-md w-full p-8 transform transition-all scale-100 border border-black/5 dark:border-white/10 animate-slide-up">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 rounded-full bg-lavender_soft dark:bg-white/10 flex items-center justify-center mx-auto mb-4 border border-lavender_border/50 dark:border-white/10">
+                    <i class="ph-fill ph-flower-lotus text-lavender_text dark:text-white text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-serif font-medium text-ink dark:text-white mb-2">Welcome to Warmth</h2>
+                <p class="text-muted dark:text-gray-400 text-sm leading-relaxed">
+                    Your safe space to chat, reflect, and be heard. I'm here to listen and remember the things that matter to you.
+                </p>
+            </div>
+            <div class="space-y-3 mb-6">
+                <div class="flex items-start gap-3 text-sm">
+                    <i class="ph-fill ph-heartbeat text-lavender_text dark:text-gray-400 mt-0.5"></i>
+                    <div>
+                        <p class="font-medium text-ink dark:text-white">Track your mood</p>
+                        <p class="text-muted dark:text-gray-400 text-xs">I'll help you understand your emotional patterns</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 text-sm">
+                    <i class="ph-fill ph-notebook text-lavender_text dark:text-gray-400 mt-0.5"></i>
+                    <div>
+                        <p class="font-medium text-ink dark:text-white">I remember</p>
+                        <p class="text-muted dark:text-gray-400 text-xs">Important details are saved automatically</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 text-sm">
+                    <i class="ph-fill ph-shield-check text-lavender_text dark:text-gray-400 mt-0.5"></i>
+                    <div>
+                        <p class="font-medium text-ink dark:text-white">Safe & private</p>
+                        <p class="text-muted dark:text-gray-400 text-xs">Everything stays on your device</p>
+                    </div>
+                </div>
+            </div>
+            <button id="welcome-close" class="w-full py-3 rounded-xl bg-lavender_text text-white font-medium hover:bg-ink shadow-sm transition-all">
+                Get Started
+            </button>
+        </div>
+    </div>
+
+    <script src="/static/main.js" defer></script>
+    
+    </body>
+</html>
