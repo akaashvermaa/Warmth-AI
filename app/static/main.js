@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
             row.classList.add('msg-right');
             row.innerHTML = `
                 <div class="msg-right-wrapper">
-                    <div class="message-bubble user-bubble px-6 py-4" style="display:inline-block; min-width:56px; max-width:var(--message-max-width); white-space:normal; word-break:normal; overflow-wrap:break-word;">
+                    <div class="message-bubble user-bubble">
                         <p class="leading-relaxed text-base font-medium">${escapeHtml(text)}</p>
                     </div>
                 </div>`;
@@ -275,12 +275,29 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             // Load mood data for chart and advice
             const moodResponse = await fetch('/mood-history');
+            if (!moodResponse.ok) {
+                console.error('Failed to fetch mood history:', moodResponse.status);
+                adviceText.textContent = '"Unable to load advice"';
+                return;
+            }
             const moodData = await moodResponse.json();
-            adviceText.textContent = `"${moodData.advice}"`;
+            console.log('Mood data received:', moodData);
+
+            if (moodData.advice) {
+                adviceText.textContent = `"${moodData.advice}"`;
+            } else {
+                adviceText.textContent = '"No advice available"';
+            }
 
             // Load combined journal data
             const journalResponse = await fetch('/api/journal');
+            if (!journalResponse.ok) {
+                console.error('Failed to fetch journal data:', journalResponse.status);
+                journalList.innerHTML = '<p class="text-center text-red-400">Failed to load journal.</p>';
+                return;
+            }
             const journalData = await journalResponse.json();
+            console.log('Journal data received:', journalData);
 
             journalList.innerHTML = '';
 
@@ -571,26 +588,7 @@ document.addEventListener('DOMContentLoaded', function() {
     welcomeClose.addEventListener('click', ()=> { welcomePopup.classList.add('hidden'); localStorage.setItem('warmth_welcome_seen','true'); });
     welcomePopup.addEventListener('click', (e)=> { if(e.target === welcomePopup) { welcomePopup.classList.add('hidden'); localStorage.setItem('warmth_welcome_seen','true'); } });
     
-    // --- Auth & CSRF Handling ---
-    async function fetchAuthStatus() {
-        try {
-            const res = await fetch(`/auth/status`);
-            const data = await res.json();
-            if (data.auth_enabled && !data.authenticated) {
-                console.log("Auth enabled, but user not authenticated.");
-                // Here you would pop up a login modal
-            }
-            if (data.csrf_token) {
-                console.log("CSRF token received.");
-                csrfToken = data.csrf_token;
-            }
-        } catch (e) {
-            console.error("Failed to fetch auth status:", e);
-        }
-    }
-    
-    // Fetch auth status on load to get CSRF token
-    fetchAuthStatus();
+    // Auth has been removed - no need to fetch auth status
     // Load preferences on load
     loadListeningPreferences();
 

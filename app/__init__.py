@@ -5,8 +5,8 @@ import threading
 import time
 from flask import Flask, jsonify
 from flask_cors import CORS
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
+# from flask_limiter import Limiter
+# from flask_limiter.util import get_remote_address
 
 # --- Core App Imports ---
 from . import config
@@ -28,12 +28,13 @@ from .web import main, auth, errors, memory, mood, preferences
 
 # --- Initialize Extensions ---
 cors = CORS()
-limiter = Limiter(
-    key_func=get_remote_address,
-    default_limits=["100 per day", "30 per hour", "10 per minute"],
-    storage_uri="memory://",
-    headers_enabled=True
-)
+# limiter = Limiter(
+#     key_func=get_remote_address,
+#     default_limits=[],
+#     storage_uri="memory://",
+#     headers_enabled=True
+# )
+limiter = None
 
 # --- Service Instantiation ---
 logger = logging.getLogger(__name__)
@@ -80,7 +81,7 @@ def create_app():
 
     # === Initialize Extensions ===
     cors.init_app(app, origins=app.config.get('ALLOWED_ORIGINS', '*').split(','), supports_credentials=True)
-    limiter.init_app(app)
+    # limiter.init_app(app)  # Temporarily disabled
 
     # === Register Blueprints (Web Routes) ===
     app.register_blueprint(errors.bp)

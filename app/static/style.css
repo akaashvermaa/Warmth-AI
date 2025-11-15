@@ -18,16 +18,16 @@
 
     /* UI tokens */
     --max-width: 1200px;
-    --message-max-width: 85%;
+    --message-max-width: 95%;
     --bubble-radius: 18px;
     --spacing-vertical: 44px; /* increased vertical gap */
     --line-height: 1.7;       /* increased line-height for readability */
     --letter-spacing: 0.12px;
     --bubble-pad-vert: 18px;
     --bubble-pad-horz: 24px;
-    --user-right-offset: 6vw; /* keeps user bubbles from right edge */
-    --chat-pad-left: clamp(28px, 6vw, 96px);
-    --chat-pad-right: clamp(28px, 6vw, 96px);
+    --user-right-offset: 8px; /* keeps user bubbles from right edge */
+    --chat-pad-left: clamp(8px, 1vw, 16px);
+    --chat-pad-right: clamp(8px, 1vw, 16px);
 
     /* motion */
     --anim-smooth: cubic-bezier(0.2,0.9,0.3,1);
@@ -61,7 +61,7 @@ body.dark {
 .chat-wrapper {
     width: 100%;
     max-width: 100%;
-    margin: 0 auto;
+    margin: 0;
     padding-left: var(--chat-pad-left);
     padding-right: var(--chat-pad-right);
     padding-top: 48px;
@@ -256,14 +256,22 @@ form#chat-form {
   margin-bottom: 8px !important;
 }
 .msg-left { justify-content: flex-start !important; }
-.msg-right { justify-content: flex-end !important; }
-.msg-right-wrapper {
+.message-row.msg-right {
+  justify-content: flex-end !important;
+}
+.message-row.msg-right .msg-right-wrapper {
   display: flex !important;
   align-items: flex-start !important;
   margin-left: auto !important;
   margin-right: var(--user-right-offset, 6vw) !important;
-  max-width: calc(100% - 280px) !important;
+  max-width: calc(100% - 80px) !important;
+  min-width: 0 !important;
   box-sizing: border-box !important;
+}
+.message-row.msg-right .msg-right-wrapper .message-bubble {
+  display: inline-block !important;
+  min-width: 80px !important;
+  max-width: var(--message-max-width) !important;
 }
 .message-bubble {
   display: inline-block !important;
