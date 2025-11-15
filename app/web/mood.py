@@ -28,6 +28,60 @@ def get_mood_history():
         logger.error(f"GET /mood-history - 500 Internal Server Error: {e}", exc_info=True)
         raise
 
+@bp.route('/api/journal', methods=['GET'])
+@require_auth
+def get_journal():
+    """ GET /api/journal - Retrieves combined memories and mood logs sorted by timestamp. """
+    try:
+        # Get memories and mood logs from the repository
+        memories = current_app.memory_repo.get_all_memories(DEFAULT_USER_ID)
+        mood_history = current_app.memory_repo.get_mood_history(DEFAULT_USER_ID)
+
+        # Create combined journal entries
+        journal_entries = []
+
+        # Process memories
+        for memory in memories:
+            journal_entries.append({
+                'id': memory['id'],
+                'type': 'memory',
+                'key': memory['key'],
+                'value': memory['value'],
+                'timestamp': memory['timestamp'],
+                'importance': memory.get('importance', 0.5)
+            })
+
+        # Process mood logs
+        for mood in mood_history:
+            if isinstance(mood, list) and len(mood) >= 2:
+                # mood format: [timestamp, score, count, label, topic]
+                timestamp = mood[0]
+                score = mood[1]
+                count = mood[2] if len(mood) > 2 else 1
+                label = mood[3] if len(mood) > 3 else 'Neutral'
+                topic = mood[4] if len(mood) > 4 else None
+
+                journal_entries.append({
+                    'id': f"mood_{timestamp}",  # Create unique ID for mood entries
+                    'type': 'mood',
+                    'score': score,
+                    'label': label,
+                    'topic': topic,
+                    'timestamp': timestamp,
+                    'count': count
+                })
+
+        # Sort all entries by timestamp (descending - newest first)
+        journal_entries.sort(key=lambda x: x['timestamp'], reverse=True)
+
+        return jsonify({
+            'entries': journal_entries
+        }), 200
+
+    except Exception as e:
+        logger.error(f"GET /api/journal - 500 Internal Server Error: {e}", exc_info=True)
+        raise
+
 # === THE FIX: Add the full path directly to the route ===
 @bp.route('/export/mood-history', methods=['GET'])
 @require_auth

@@ -158,10 +158,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
    
     // --- Memory panel open/close & load ---
-    settingsButton.addEventListener('click', () => { 
-        memoryPanel.classList.remove('hidden'); 
-        loadMemory(); 
-        loadListeningPreferences(); // This will now load the TTS setting too
+    settingsButton.addEventListener('click', () => {
+        memoryPanel.classList.remove('hidden');
+        loadListeningPreferences();
     });
     document.getElementById('close-memory-button').addEventListener('click', () => { memoryPanel.classList.add('hidden'); });
 
@@ -195,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- Mood panel ---
-    moodButton.addEventListener('click', ()=> { moodPanel.classList.remove('hidden'); loadMoods(); });
+    moodButton.addEventListener('click', ()=> { moodPanel.classList.remove('hidden'); loadJournal(); });
     document.getElementById('close-mood-button').addEventListener('click', ()=> { moodPanel.classList.add('hidden'); });
 
     async function loadMoods() {
@@ -261,6 +260,131 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error("Error loading moods:", e);
             moodList.innerHTML = '<p class="text-center text-red-400">Failed to read pulse.</p>';
         }
+    }
+
+    // --- Journal panel (combined memories and moods) ---
+    async function loadJournal() {
+        const journalList = document.getElementById('journal-list');
+        if (!journalList) {
+            console.error('Journal list element not found');
+            return;
+        }
+
+        journalList.innerHTML = '<div class="flex justify-center py-5"><div class="typing-dot"></div></div>';
+
+        try {
+            // Load mood data for chart and advice
+            const moodResponse = await fetch('/mood-history');
+            const moodData = await moodResponse.json();
+            adviceText.textContent = `"${moodData.advice}"`;
+
+            // Load combined journal data
+            const journalResponse = await fetch('/api/journal');
+            const journalData = await journalResponse.json();
+
+            journalList.innerHTML = '';
+
+            if (!journalData.entries || journalData.entries.length === 0) {
+                journalList.innerHTML = '<div class="text-center text-muted py-5 text-sm">No journal entries yet.</div>';
+                setVibeText(0);
+                renderChart([], []);
+                return;
+            }
+
+            // Process mood data for chart
+            const moodEntries = moodData.history || [];
+            const chartData = [...moodEntries].reverse();
+            const labels = [], scores = [];
+            chartData.forEach(item => {
+                if (!item || !item[0]) return;
+                const d = new Date(item[0]);
+                labels.push(d.toLocaleDateString('en-US', { month:'short', day:'numeric' }));
+                scores.push(item[1]);
+            });
+
+            const latestScore = moodEntries.length > 0 ? moodEntries[0][1] : 0;
+            setVibeText(latestScore);
+            renderChart(labels, scores);
+
+            // Render combined journal entries
+            journalData.entries.forEach(entry => {
+                if (entry.type === 'memory') {
+                    renderMemoryEntry(journalList, entry);
+                } else if (entry.type === 'mood') {
+                    renderMoodEntry(journalList, entry);
+                }
+            });
+
+        } catch(e) {
+            console.error("Error loading journal:", e);
+            journalList.innerHTML = '<p class="text-center text-red-400">Failed to load journal.</p>';
+        }
+    }
+
+    function renderMemoryEntry(container, entry) {
+        const dateObj = new Date(entry.timestamp);
+        const displayDate = dateObj.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+
+        const div = document.createElement('div');
+        div.className = 'bg-white dark:bg-white/5 p-4 rounded-xl border border-black/5 dark:border-white/5 shadow-sm mb-3';
+        div.innerHTML = `
+            <div class="flex items-start justify-between gap-3">
+                <div class="flex items-start gap-2">
+                    <div class="w-6 h-6 rounded-full bg-lavender_soft dark:bg-white/10 flex items-center justify-center flex-shrink-0 mt-1">
+                        <i class="ph-fill ph-notebook text-lavender_text dark:text-white text-xs"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-[10px] text-lavender_text dark:text-white font-bold uppercase tracking-widest mb-1">${escapeHtml(entry.key)}</p>
+                        <p class="text-ink dark:text-gray-300 text-sm line-clamp-2">${escapeHtml(entry.value)}</p>
+                    </div>
+                </div>
+                <div class="flex flex-col items-end gap-1">
+                    <button onclick="confirmForget(${entry.id}, '${escapeHtml(entry.key)}')" class="w-6 h-6 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/10 text-muted hover:text-ink transition-colors opacity-0 hover:opacity-100">
+                        <i class="ph ph-trash text-xs"></i>
+                    </button>
+                    <span class="text-[9px] text-muted font-mono">${displayDate}</span>
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
+    }
+
+    function renderMoodEntry(container, entry) {
+        const dateObj = new Date(entry.timestamp);
+        const displayDate = dateObj.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+
+        let label = entry.label || "Neutral";
+        let barColor = "bg-gray-300";
+        if(entry.score >= 0.5) { label="Radiant"; barColor = "bg-lavender_border"; }
+        else if(entry.score >= 0.1) { label="Good"; barColor = "bg-lavender_border"; }
+        else if(entry.score <= -0.5) { label="Heavy"; barColor = "bg-rose-300"; }
+        else if(entry.score <= -0.1) { label="Low"; barColor = "bg-rose-200"; }
+
+        const intensity = Math.abs(entry.score) * 100;
+
+        const div = document.createElement('div');
+        div.className = 'bg-white dark:bg-white/5 p-4 rounded-xl border border-black/5 dark:border-white/5 shadow-sm mb-3';
+        div.innerHTML = `
+            <div class="flex items-start justify-between gap-3">
+                <div class="flex items-start gap-2">
+                    <div class="w-6 h-6 rounded-full bg-lavender_soft dark:bg-white/10 flex items-center justify-center flex-shrink-0 mt-1">
+                        <i class="ph-fill ph-heartbeat text-lavender_text dark:text-white text-xs"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-sm font-medium text-ink dark:text-white">${label}</span>
+                            ${entry.count ? `<span class="text-[9px] text-muted bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded-md">${entry.count} messages</span>` : ''}
+                            ${entry.topic ? `<span class="text-[9px] text-muted bg-lavender_soft/20 dark:bg-white/5 px-1.5 py-0.5 rounded-md">${escapeHtml(entry.topic)}</span>` : ''}
+                        </div>
+                        <div class="h-1.5 w-full bg-black/5 dark:bg-white/5 rounded-full overflow-hidden">
+                            <div class="h-full ${barColor} rounded-full transition-all duration-500" style="width: ${Math.max(intensity,10)}%"></div>
+                        </div>
+                    </div>
+                </div>
+                <span class="text-[9px] text-muted font-mono">${displayDate}</span>
+            </div>
+        `;
+        container.appendChild(div);
     }
 
     function setVibeText(score) {
