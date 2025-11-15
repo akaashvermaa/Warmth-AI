@@ -390,8 +390,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const listeningModeToggle = document.getElementById('listening-mode-toggle'),
           listeningModeOptions = document.getElementById('listening-mode-options'),
           listeningModeIndicator = document.getElementById('listening-mode-indicator'),
-          listeningMemoryToggle = document.getElementById('listening-memory-toggle'),
-          
+          listeningMemoryToggle = document.getElementById('listening-memory-toggle');
     async function loadListeningPreferences() {
         try {
             const res = await fetch(`/preferences/`); // Relative path
